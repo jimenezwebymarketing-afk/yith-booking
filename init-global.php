@@ -93,9 +93,30 @@ function yith_wcbk_install_woocommerce_admin_notice() {
 }
 
 /**
+ * Print admin notice if plugin files are missing
+ */
+function yith_wcbk_missing_files_notice() {
+	?>
+	<div class="error">
+		<p>
+			<?php
+			echo esc_html( sprintf( __( '%s installation is incomplete. Essential plugin files are missing. Please reinstall the plugin or contact support.', 'yith-booking-for-woocommerce' ), YITH_WCBK_PLUGIN_NAME ) );
+			?>
+		</p>
+	</div>
+	<?php
+}
+
+/**
  * Plugin init
  */
 function yith_wcbk_init() {
+	// Check if essential plugin files exist before loading
+	if ( ! file_exists( YITH_WCBK_DIR . 'includes/functions.yith-wcbk.php' ) ) {
+		add_action( 'admin_notices', 'yith_wcbk_missing_files_notice' );
+		return;
+	}
+
 	if ( function_exists( 'yith_plugin_fw_load_plugin_textdomain' ) ) {
 		yith_plugin_fw_load_plugin_textdomain( 'yith-booking-for-woocommerce', basename( dirname( __FILE__ ) ) . '/languages' );
 	}

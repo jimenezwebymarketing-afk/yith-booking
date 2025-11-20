@@ -18,15 +18,21 @@
 
 defined( 'ABSPATH' ) || exit;
 
-if ( ! function_exists( 'yith_plugin_registration_hook' ) ) {
-	require_once 'plugin-fw/yit-plugin-registration-hook.php';
+// Check if required plugin framework exists
+if ( file_exists( __DIR__ . '/plugin-fw/yit-plugin-registration-hook.php' ) ) {
+	if ( ! function_exists( 'yith_plugin_registration_hook' ) ) {
+		require_once __DIR__ . '/plugin-fw/yit-plugin-registration-hook.php';
+	}
+	register_activation_hook( __FILE__, 'yith_plugin_registration_hook' );
 }
-register_activation_hook( __FILE__, 'yith_plugin_registration_hook' );
 
-if ( ! function_exists( 'yith_plugin_onboarding_registration_hook' ) ) {
-	include_once 'plugin-upgrade/functions-yith-licence.php';
+// Check if plugin upgrade functions exist
+if ( file_exists( __DIR__ . '/plugin-upgrade/functions-yith-licence.php' ) ) {
+	if ( ! function_exists( 'yith_plugin_onboarding_registration_hook' ) ) {
+		include_once __DIR__ . '/plugin-upgrade/functions-yith-licence.php';
+	}
+	register_activation_hook( __FILE__, 'yith_plugin_onboarding_registration_hook' );
 }
-register_activation_hook( __FILE__, 'yith_plugin_onboarding_registration_hook' );
 
 
 if ( ! defined( 'YITH_WCBK_PREMIUM' ) ) {
@@ -49,4 +55,21 @@ if ( ! defined( 'YITH_WCBK_FILE' ) ) {
 	define( 'YITH_WCBK_FILE', __FILE__ );
 }
 
-require_once __DIR__ . '/init-global.php';
+// Only load global initialization if file exists
+if ( file_exists( __DIR__ . '/init-global.php' ) ) {
+	require_once __DIR__ . '/init-global.php';
+} else {
+	// Deactivate plugin if essential files are missing
+	if ( function_exists( 'add_action' ) ) {
+		add_action( 'admin_init', function() {
+			deactivate_plugins( plugin_basename( __FILE__ ) );
+		} );
+		add_action( 'admin_notices', function() {
+			?>
+			<div class="error">
+				<p><?php esc_html_e( 'YITH Booking and Appointment for WooCommerce has been deactivated because essential files are missing. Please reinstall the plugin.', 'yith-booking-for-woocommerce' ); ?></p>
+			</div>
+			<?php
+		} );
+	}
+}
